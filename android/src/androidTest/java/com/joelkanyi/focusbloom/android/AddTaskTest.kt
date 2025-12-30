@@ -15,7 +15,6 @@
  */
 package com.joelkanyi.focusbloom.android
 
-import android.os.Build
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -24,11 +23,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.compose.ui.test.ComposeTimeoutException
-import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.UiSelector
-import androidx.test.uiautomator.Until
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -76,11 +71,11 @@ class AddTaskTest {
     @Test
     fun clickAddButtonAndCreateTask() {
         // Step 1: Handle notification permission (Android 13+)
-        handleNotificationPermission()
+        handleNotificationPermission(device)
 
         // Step 2: Complete onboarding flow
-        completeOnboarding()
-        completeUsername()
+        completeOnboarding(composeTestRule)
+        completeUsername(composeTestRule)
 
         // Step 3: Now we should be on the home screen, find the FAB
         composeTestRule.waitForIdle()
@@ -163,9 +158,9 @@ class AddTaskTest {
      */
     @Test
     fun addTaskButtonExistsAfterOnboarding() {
-        handleNotificationPermission()
-        completeOnboarding()
-        completeUsername()
+        handleNotificationPermission(device)
+        completeOnboarding(composeTestRule)
+        completeUsername(composeTestRule)
 
         composeTestRule.waitForIdle()
 
@@ -191,9 +186,9 @@ class AddTaskTest {
      */
     @Test
     fun onboardingFlowCompletes() {
-        handleNotificationPermission()
-        completeOnboarding()
-        completeUsername()
+        handleNotificationPermission(device)
+        completeOnboarding(composeTestRule)
+        completeUsername(composeTestRule)
 
         composeTestRule.waitForIdle()
 
@@ -208,158 +203,5 @@ class AddTaskTest {
                 false
             }
         }
-    }
-
-    // ========== Helper Methods ==========
-
-    /**
-     * Handles the Android notification permission dialog (Android 13+)
-     */
-    private fun handleNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // Wait for permission dialog to appear
-            val permissionDialog = device.wait(
-                Until.findObject(By.text("Allow")),
-                2000
-            )
-
-            if (permissionDialog != null) {
-                // Click "Allow" button
-                try {
-                    val allowButton = device.findObject(
-                        UiSelector()
-                            .text("Allow")
-                            .className("android.widget.Button")
-                    )
-                    if (allowButton.exists()) {
-                        allowButton.click()
-                        Thread.sleep(1000) // Wait for dialog to dismiss
-                    }
-                } catch (e: Exception) {
-                    // If clicking by text fails, try the more generic approach
-                    try {
-                        device.findObject(By.text("Allow"))?.click()
-                        Thread.sleep(1000)
-                    } catch (e2: Exception) {
-                        // Permission dialog might have been dismissed or not shown
-                        // Continue with test
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Completes the full onboarding flow:
-     * 1. Click "Next" on page 1
-     * 2. Click "Next" on page 2
-     * 3. Click "Get Started" on page 3
-     * 4. Enter username and click "Continue"
-     */
-    private fun completeOnboarding() {
-        composeTestRule.waitForIdle()
-
-        // Page 1: Click "Next" (or return if onboarding already done)
-        try {
-            composeTestRule.waitUntil(timeoutMillis = 1_000) {
-                try {
-                    composeTestRule
-                        .onNodeWithTag("onboarding_next_button")
-                        .assertExists()
-                    true
-                } catch (e: AssertionError) {
-                    false
-                }
-            }
-        } catch (e: ComposeTimeoutException) {
-            // Onboarding button not found - onboarding already complete
-            return
-        }
-
-        composeTestRule
-            .onNodeWithTag("onboarding_next_button")
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        // Page 2: Click "Next" again
-        composeTestRule.waitUntil(timeoutMillis = 5_000) {
-            try {
-                composeTestRule
-                    .onNodeWithTag("onboarding_next_button")
-                    .assertExists()
-                true
-            } catch (e: AssertionError) {
-                false
-            }
-        }
-
-        composeTestRule
-            .onNodeWithTag("onboarding_next_button")
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        // Page 3: Click "Get Started"
-        composeTestRule.waitUntil(timeoutMillis = 5_000) {
-            try {
-                composeTestRule
-                    .onNodeWithTag("onboarding_get_started_button")
-                    .assertExists()
-                true
-            } catch (e: AssertionError) {
-                false
-            }
-        }
-
-        composeTestRule
-            .onNodeWithTag("onboarding_get_started_button")
-            .performClick()
-    }
-
-    private fun completeUsername() {
-        composeTestRule.waitForIdle()
-
-        // Username screen: Enter username (or return if already on home screen)
-        try {
-            composeTestRule.waitUntil(timeoutMillis = 1_000) {
-                try {
-                    composeTestRule
-                        .onNodeWithTag("username_input")
-                        .assertExists()
-                    true
-                } catch (e: AssertionError) {
-                    false
-                }
-            }
-        } catch (e: ComposeTimeoutException) {
-            // Username screen not found - already on home screen
-            return
-        }
-
-        composeTestRule
-            .onNodeWithTag("username_input")
-            .performTextInput("TestUser")
-
-        composeTestRule.waitForIdle()
-
-        // Click Continue button (it appears after username is entered)
-        composeTestRule.waitUntil(timeoutMillis = 5_000) {
-            try {
-                composeTestRule
-                    .onNodeWithTag("username_continue_button")
-                    .assertExists()
-                true
-            } catch (e: AssertionError) {
-                false
-            }
-        }
-
-        composeTestRule
-            .onNodeWithTag("username_continue_button")
-            .performClick()
-
-        // Wait for navigation to complete
-        Thread.sleep(2000)
     }
 }
