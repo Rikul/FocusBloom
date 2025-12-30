@@ -87,7 +87,8 @@ fun MainScreen(
                 FloatingActionButton(
                     modifier = Modifier
                         .offset(y = 60.dp)
-                        .size(42.dp),
+                        .size(42.dp)
+                        .testTag("add_task_fab"),
                     containerColor = MaterialTheme.colorScheme.primary,
                     onClick = {
                         navController.navigate(Destinations.AddTask())

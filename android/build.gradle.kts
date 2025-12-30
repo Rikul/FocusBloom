@@ -30,6 +30,8 @@ android {
         targetSdk = compileSdk
         versionCode = 5
         versionName = properties["version"] as String
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         // debug
@@ -68,4 +70,12 @@ dependencies {
     implementation(libs.compose.activity)
     implementation(libs.koin.android)
     coreLibraryDesugaring(libs.core.library.desugaring)
+
+    // Testing dependencies
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.uiautomator)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

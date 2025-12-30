@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -128,7 +129,8 @@ fun UsernameScreenContent(
             UsernameTextField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .focusRequester(focusRequester),
+                    .focusRequester(focusRequester)
+                    .testTag("username_input"),
                 name = username,
                 onNameChange = {
                     onUsernameChange(it)
@@ -148,7 +150,8 @@ fun UsernameScreenContent(
                     Button(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
+                            .height(56.dp)
+                            .testTag("username_continue_button"),
                         shape = MaterialTheme.shapes.medium,
                         onClick = onClickContinue,
                     ) {

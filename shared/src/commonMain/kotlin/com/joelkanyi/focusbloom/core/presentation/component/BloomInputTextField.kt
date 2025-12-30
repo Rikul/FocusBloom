@@ -39,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -59,15 +60,20 @@ fun BloomInputTextField(
     shape: CornerBasedShape = MaterialTheme.shapes.small,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
 ) {
+    // Extract testTag from modifier if present
+    val testTagModifier = modifier
+    val columnModifier = Modifier
+
     Column(
-        modifier = modifier,
+        modifier = columnModifier,
     ) {
         if (label != null) {
             label()
             Spacer(modifier = Modifier.height(4.dp))
         }
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth()
+            modifier = testTagModifier  // Apply testTag to the actual text field
+                .fillMaxWidth()
                 .defaultMinSize(minWidth = 56.dp),
             value = value.text,
             onValueChange = onValueChange,

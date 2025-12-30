@@ -42,6 +42,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -221,7 +222,8 @@ fun OnBoardingNavigationButton(modifier: Modifier = Modifier, text: String, onCl
     Button(
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp),
+            .height(56.dp)
+            .testTag("onboarding_${text.lowercase().replace(" ", "_")}_button"),
         onClick = onClick,
         shape = MaterialTheme.shapes.medium,
     ) {
