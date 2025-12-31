@@ -39,9 +39,13 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 
+import com.joelkanyi.focusbloom.core.domain.repository.TaskTemplateRepository
+import com.joelkanyi.focusbloom.core.domain.model.TaskTemplate
+
 class AddTaskViewModel(
     settingsRepository: SettingsRepository,
     private val tasksRepository: TasksRepository,
+    private val taskTemplateRepository: TaskTemplateRepository,
 ) : ViewModel() {
     private val _eventsFlow = Channel<UiEvents>(Channel.UNLIMITED)
     val eventsFlow = _eventsFlow.receiveAsFlow()
@@ -171,12 +175,74 @@ class AddTaskViewModel(
         _showTaskDatePickerDialog.value = show
     }
 
+    val taskTemplates = taskTemplateRepository.getAllTaskTemplates()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList(),
+        )
+
+    private val _selectedTemplate = MutableStateFlow<TaskTemplate?>(null)
+    val selectedTemplate = _selectedTemplate.asStateFlow()
+
+    fun selectTemplate(template: TaskTemplate) {
+        _selectedTemplate.value = template
+        setTaskName(template.taskName)
+        setTaskDescription(template.taskDescription ?: "")
+        setSelectedOption(taskTypes.find { it.name == template.type } ?: taskTypes.last())
+        setStartTime(template.startTime)
+        setFocusSessions(template.focusSessions)
+
+        setEndTime(
+            calculateFromFocusSessions(
+                focusSessions = template.focusSessions,
+                sessionTime = sessionTime.value ?: 25,
+                shortBreakTime = shortBreakTime.value ?: 5,
+                longBreakTime = longBreakTime.value ?: 15,
+                currentLocalDateTime = LocalDateTime(
+                    year = taskDate.value.year,
+                    month = taskDate.value.month,
+                    dayOfMonth = taskDate.value.dayOfMonth,
+                    hour = template.startTime.hour,
+                    minute = template.startTime.minute,
+                ),
+            ),
+        )
+    }
+
+    private val _showSaveTemplateDialog = MutableStateFlow(false)
+    val showSaveTemplateDialog = _showSaveTemplateDialog.asStateFlow()
+
+    fun setShowSaveTemplateDialog(show: Boolean) {
+        _showSaveTemplateDialog.value = show
+    }
+
+    fun saveAsTemplate(templateName: String) {
+        viewModelScope.launch {
+            taskTemplateRepository.addTaskTemplate(
+                TaskTemplate(
+                    name = templateName,
+                    taskName = taskName.value,
+                    taskDescription = taskDescription.value,
+                    type = selectedOption.value.name,
+                    startTime = startTime.value,
+                    color = selectedOption.value.color,
+                    focusSessions = focusSessions.value,
+                )
+            )
+            setShowSaveTemplateDialog(false)
+            _eventsFlow.trySend(UiEvents.ShowSnackbar("Template saved!"))
+            _eventsFlow.trySend(UiEvents.NavigateBack)
+        }
+    }
+
     fun addTask(task: Task) {
         viewModelScope.launch {
             tasksRepository.addTask(task)
             reset()
             setEndTime(today().time)
             _eventsFlow.trySend(UiEvents.ShowSnackbar("Task added!"))
+            _eventsFlow.trySend(UiEvents.NavigateBack)
         }
     }
 

@@ -1,0 +1,34 @@
+import kotlin.Int;
+import kotlin.Long;
+
+CREATE TABLE IF NOT EXISTS taskTemplateEntity (
+    id INTEGER AS Int NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    taskName TEXT NOT NULL,
+    taskDescription TEXT,
+    type TEXT NOT NULL,
+    startTime TEXT NOT NULL,
+    color INTEGER AS Long NOT NULL,
+    focusSessions INTEGER AS Int NOT NULL
+);
+
+getAllTaskTemplates:
+SELECT * FROM taskTemplateEntity ORDER BY name ASC;
+
+getTaskTemplateById:
+SELECT * FROM taskTemplateEntity WHERE id = ?;
+
+insertTaskTemplate:
+INSERT INTO taskTemplateEntity (name, taskName, taskDescription, type, startTime, color, focusSessions)
+VALUES (?,?,?,?,?,?,?);
+
+updateTaskTemplate:
+UPDATE taskTemplateEntity
+SET name = ?, taskName = ?, taskDescription = ?, type = ?, startTime = ?, color = ?, focusSessions = ?
+WHERE id = ?;
+
+deleteTaskTemplate:
+DELETE FROM taskTemplateEntity WHERE id = ?;
+
+deleteAllTaskTemplates:
+DELETE FROM taskTemplateEntity;

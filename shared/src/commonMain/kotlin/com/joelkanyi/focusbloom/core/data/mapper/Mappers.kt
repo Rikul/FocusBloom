@@ -17,7 +17,8 @@ package com.joelkanyi.focusbloom.core.data.mapper
 
 import com.joelkanyi.focusbloom.core.domain.model.Task
 import com.joelkanyi.focusbloom.core.utils.dateTimeToString
-import database.TaskEntity
+import com.joelkanyi.focusbloom.database.TaskEntity
+import com.joelkanyi.focusbloom.database.TaskTemplateEntity
 import kotlinx.datetime.toLocalDateTime
 
 fun TaskEntity.toTask() = Task(
@@ -56,4 +57,26 @@ fun Task.toTaskEntity() = TaskEntity(
     inProgressTask = inProgressTask,
     currentCycle = currentCycle,
     active = active,
+)
+
+fun TaskTemplateEntity.toTaskTemplate() = com.joelkanyi.focusbloom.core.domain.model.TaskTemplate(
+    id = id,
+    name = name,
+    taskName = taskName,
+    taskDescription = taskDescription,
+    type = type,
+    startTime = kotlinx.datetime.LocalTime.parse(startTime),
+    color = color,
+    focusSessions = focusSessions,
+)
+
+fun com.joelkanyi.focusbloom.core.domain.model.TaskTemplate.toTaskTemplateEntity() = TaskTemplateEntity(
+    id = id,
+    name = name,
+    taskName = taskName,
+    taskDescription = taskDescription,
+    type = type,
+    startTime = startTime.toString(),
+    color = color,
+    focusSessions = focusSessions,
 )

@@ -22,6 +22,7 @@ import com.joelkanyi.focusbloom.feature.addtask.AddTaskViewModel
 import com.joelkanyi.focusbloom.feature.calendar.CalendarViewModel
 import com.joelkanyi.focusbloom.feature.onboarding.OnboardingViewModel
 import com.joelkanyi.focusbloom.feature.settings.SettingsViewModel
+import com.joelkanyi.focusbloom.feature.settings.EditTaskTemplateViewModel
 import com.joelkanyi.focusbloom.feature.statistics.StatisticsViewModel
 import com.joelkanyi.focusbloom.feature.taskprogress.TaskProgressViewModel
 import com.joelkanyi.focusbloom.main.MainViewModel
@@ -32,6 +33,7 @@ actual val viewModelModule = module {
     singleOf(::CalendarViewModel)
     singleOf(::OnboardingViewModel)
     singleOf(::SettingsViewModel)
+    singleOf(::EditTaskTemplateViewModel)
     singleOf(::StatisticsViewModel)
     singleOf(::TaskProgressViewModel)
     singleOf(::MainViewModel)

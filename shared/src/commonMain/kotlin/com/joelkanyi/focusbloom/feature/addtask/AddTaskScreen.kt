@@ -99,8 +99,13 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
+import com.joelkanyi.focusbloom.core.domain.model.TaskTemplate
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,6 +134,9 @@ fun AddTaskScreen(
     val taskDate = viewModel.taskDate.collectAsState().value
     val startTime = viewModel.startTime.collectAsState().value
     val endTime = viewModel.endTime.collectAsState().value
+    val taskTemplates = viewModel.taskTemplates.collectAsState().value
+    val showSaveTemplateDialog = viewModel.showSaveTemplateDialog.collectAsState().value
+    val selectedTemplate = viewModel.selectedTemplate.collectAsState().value
 
     val startTimeState = rememberTimePickerState(
         initialHour = today().hour,
@@ -217,6 +225,17 @@ fun AddTaskScreen(
         )
     }
 
+    if (showSaveTemplateDialog) {
+        SaveTemplateDialog(
+            onDismiss = {
+                viewModel.setShowSaveTemplateDialog(false)
+            },
+            onSave = {
+                viewModel.saveAsTemplate(it)
+            },
+        )
+    }
+
     AddTaskScreenContent(
         snackbarHostState = snackbarHostState,
         hourFormat = hourFormat,
@@ -228,6 +247,7 @@ fun AddTaskScreen(
         startTime = startTime,
         endTime = endTime,
         focusSessions = focusSessions,
+        isEditMode = taskToUpdate != null,
         onTaskNameChange = {
             viewModel.setTaskName(it)
         },
@@ -302,6 +322,14 @@ fun AddTaskScreen(
                 )
             }
         },
+        taskTemplates = taskTemplates,
+        selectedTemplate = selectedTemplate,
+        onTemplateSelected = {
+             viewModel.selectTemplate(it)
+        },
+        onSaveAsTemplate = {
+             viewModel.setShowSaveTemplateDialog(true)
+        },
     )
 }
 
@@ -328,6 +356,11 @@ private fun AddTaskScreenContent(
     taskDate: LocalDateTime,
     startTime: LocalTime,
     endTime: LocalTime,
+    taskTemplates: List<TaskTemplate>,
+    selectedTemplate: TaskTemplate?,
+    onTemplateSelected: (TaskTemplate) -> Unit,
+    onSaveAsTemplate: () -> Unit,
+    isEditMode: Boolean,
 ) {
     Scaffold(
         snackbarHost = {
@@ -380,7 +413,7 @@ private fun AddTaskScreenContent(
         },
         topBar = {
             BloomTopAppBar {
-                Text(text = "Add Task")
+                Text(text = if (isEditMode) "Edit Task" else "Add Task")
             }
         },
     ) { paddingValues ->
@@ -389,6 +422,30 @@ private fun AddTaskScreenContent(
             contentPadding = PaddingValues(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            if (!isEditMode) {
+                item {
+                    BloomDropDown(
+                        label = {
+                            Text(
+                                text = "Template",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 16.sp,
+                                ),
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        options = taskTemplates.map { TemplateOption(it) },
+                        selectedOption = TextFieldState(selectedTemplate?.name ?: "Select Template"),
+                        onOptionSelected = {
+                             onTemplateSelected(it.template)
+                        },
+                        textStyle = MaterialTheme.typography.titleSmall.copy(
+                            fontSize = 16.sp,
+                        ),
+                    )
+                }
+            }
             item {
                 BloomInputTextField(
                     modifier = Modifier
@@ -570,6 +627,21 @@ private fun AddTaskScreenContent(
                     },
                 )
             }
+            if (!isEditMode) {
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    BloomButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        onClick = onSaveAsTemplate,
+                        content = {
+                            Text(text = "Save as Template")
+                        },
+                        backgroundColor = MaterialTheme.colorScheme.secondary,
+                    )
+                }
+            }
         }
     }
 }
@@ -724,4 +796,40 @@ fun DashedDivider(
             ),
         )
     }
+}
+
+data class TemplateOption(val template: TaskTemplate) {
+    override fun toString(): String = template.name
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SaveTemplateDialog(
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Save as Template") },
+        text = {
+            BloomInputTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = TextFieldState(name),
+                onValueChange = { name = it },
+                label = { Text("Template Name") },
+                placeholder = { Text("Enter name") }
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(name) }) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }

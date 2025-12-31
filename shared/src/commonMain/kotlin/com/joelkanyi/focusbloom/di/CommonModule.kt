@@ -26,11 +26,14 @@ import com.joelkanyi.focusbloom.core.data.adapter.idAdapter
 import com.joelkanyi.focusbloom.core.data.local.setting.PreferenceManager
 import com.joelkanyi.focusbloom.core.data.repository.settings.SettingsRepositoryImpl
 import com.joelkanyi.focusbloom.core.data.repository.tasks.TasksRepositoryImpl
+import com.joelkanyi.focusbloom.core.data.repository.TaskTemplateRepositoryImpl
 import com.joelkanyi.focusbloom.core.domain.repository.settings.SettingsRepository
 import com.joelkanyi.focusbloom.core.domain.repository.tasks.TasksRepository
+import com.joelkanyi.focusbloom.core.domain.repository.TaskTemplateRepository
 import com.joelkanyi.focusbloom.database.BloomDatabase
 import com.joelkanyi.focusbloom.platform.DatabaseDriverFactory
-import database.TaskEntity
+import com.joelkanyi.focusbloom.database.TaskEntity
+import com.joelkanyi.focusbloom.database.TaskTemplateEntity
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -49,6 +52,11 @@ fun commonModule() = module {
                 consumedShortBreakTimeAdapter = consumedShortBreakTimeAdapter,
                 currentAdapter = currentAdapter,
                 currentCycleAdapter = currentCycleAdapter,
+                focusSessionsAdapter = focusSessionsAdapter,
+            ),
+            taskTemplateEntityAdapter = TaskTemplateEntity.Adapter(
+                idAdapter = idAdapter,
+                colorAdapter = colorAdapter,
                 focusSessionsAdapter = focusSessionsAdapter,
             ),
         )
@@ -71,6 +79,12 @@ fun commonModule() = module {
 
     single<TasksRepository> {
         TasksRepositoryImpl(
+            bloomDatabase = get(),
+        )
+    }
+
+    single<TaskTemplateRepository> {
+        TaskTemplateRepositoryImpl(
             bloomDatabase = get(),
         )
     }

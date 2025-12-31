@@ -27,8 +27,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+import com.joelkanyi.focusbloom.core.domain.repository.TaskTemplateRepository
+
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
+    private val taskTemplateRepository: TaskTemplateRepository,
 ) : ViewModel() {
     private val _selectedColorCardTitle = MutableStateFlow("")
     val selectedColorCardTitle = _selectedColorCardTitle.asStateFlow()
@@ -180,6 +183,19 @@ class SettingsViewModel(
     fun setReminders(value: Int) {
         viewModelScope.launch {
             settingsRepository.toggleReminder(value)
+        }
+    }
+
+    val taskTemplates = taskTemplateRepository.getAllTaskTemplates()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList(),
+        )
+
+    fun deleteTaskTemplate(id: Int) {
+        viewModelScope.launch {
+            taskTemplateRepository.deleteTaskTemplate(id)
         }
     }
 }

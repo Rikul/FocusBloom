@@ -28,6 +28,7 @@ import com.joelkanyi.focusbloom.feature.home.HomeScreen
 import com.joelkanyi.focusbloom.feature.onboarding.OnboardingScreen
 import com.joelkanyi.focusbloom.feature.onboarding.UsernameScreen
 import com.joelkanyi.focusbloom.feature.settings.SettingsScreen
+import com.joelkanyi.focusbloom.feature.settings.EditTaskTemplateScreen
 import com.joelkanyi.focusbloom.feature.statistics.AllStatisticsScreen
 import com.joelkanyi.focusbloom.feature.statistics.StatisticsScreen
 import com.joelkanyi.focusbloom.feature.taskprogress.TaskProgressScreen
@@ -91,6 +92,14 @@ fun AppNavHost(
 
         composable<Destinations.Settings> {
             SettingsScreen(navController = navController)
+        }
+
+        composable<Destinations.EditTaskTemplate> { backStackEntry ->
+            val editTaskTemplate: Destinations.EditTaskTemplate = backStackEntry.toRoute()
+            EditTaskTemplateScreen(
+                 templateId = editTaskTemplate.templateId,
+                 navController = navController
+            )
         }
 
         composable<Destinations.TaskProgress> { backStackEntry ->

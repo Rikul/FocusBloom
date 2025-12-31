@@ -40,9 +40,13 @@ import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
+import com.joelkanyi.focusbloom.core.domain.model.TaskTemplate
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -89,6 +93,8 @@ import com.joelkanyi.focusbloom.core.utils.koinViewModel
 import com.joelkanyi.focusbloom.core.utils.timeFormat
 import com.joelkanyi.focusbloom.platform.StatusBarColors
 
+import com.joelkanyi.focusbloom.core.presentation.navigation.Destinations
+
 @Composable
 fun SettingsScreen(
     navController: NavController,
@@ -113,6 +119,30 @@ fun SettingsScreen(
     val currentSessionColor = viewModel.focusColor.collectAsState().value
     val showColorDialog = viewModel.showColorDialog.collectAsState().value
     val remindersOn = viewModel.remindersOn.collectAsState().value
+    val taskTemplates = viewModel.taskTemplates.collectAsState().value
+
+    var templateToDelete by remember { mutableStateOf<Int?>(null) }
+
+    if (templateToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { templateToDelete = null },
+            title = { Text("Delete Template") },
+            text = { Text("Are you sure you want to delete this template?") },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        viewModel.deleteTaskTemplate(templateToDelete!!)
+                        templateToDelete = null
+                    }
+                ) { Text("Delete") }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = { templateToDelete = null }
+                ) { Text("Cancel") }
+            }
+        )
+    }
 
     SettingsScreenContent(
         darkTheme = darkTheme,
@@ -209,6 +239,13 @@ fun SettingsScreen(
                 },
             )
         },
+        taskTemplates = taskTemplates,
+        onEditTemplate = { id ->
+            navController.navigate(Destinations.EditTaskTemplate(id))
+        },
+        onDeleteTemplate = { id ->
+            templateToDelete = id
+        },
     )
 }
 
@@ -238,6 +275,9 @@ fun SettingsScreenContent(
     onSelectColor: (Long) -> Unit,
     remindersOn: Boolean,
     onRemindersChange: (Boolean) -> Unit,
+    taskTemplates: List<TaskTemplate>,
+    onEditTemplate: (Int) -> Unit,
+    onDeleteTemplate: (Int) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -269,6 +309,15 @@ fun SettingsScreenContent(
                     onExpand = { title ->
                         openOptions(title)
                     },
+                )
+            }
+            item {
+                TaskTemplatesSetting(
+                    taskTemplates = taskTemplates,
+                    expanded = { title -> optionsOpened.contains(title) },
+                    onExpand = { title -> openOptions(title) },
+                    onEditTemplate = onEditTemplate,
+                    onDeleteTemplate = onDeleteTemplate,
                 )
             }
             item {
@@ -758,20 +807,48 @@ private val sessionColors = listOf(
     Pink,
 )
 
-/**
- * Settings
- * Focus Sessions
- *  - time for short, long and focus session
- *  - auto start breaks, sessions
- * Sounds
- *  - alarm sound - repeat times
- *  - ticking sound
- * Theme
- *  - for breaks and focus session
- * Hour format
- * Notification
- *  - reminder - last, middle task
- *  - how many minutes to
- *  - alarm name
- *  - add new one
- */
+@Composable
+fun TaskTemplatesSetting(
+    taskTemplates: List<TaskTemplate>,
+    onExpand: (String) -> Unit,
+    expanded: (String) -> Boolean,
+    onEditTemplate: (Int) -> Unit,
+    onDeleteTemplate: (Int) -> Unit
+) {
+    SettingCard(
+        onExpand = { onExpand("Task Templates") },
+        expanded = expanded("Task Templates"),
+        title = "Task Templates",
+        icon = Icons.Outlined.List,
+        content = {
+            if (taskTemplates.isEmpty()) {
+                Text("No templates found.")
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    taskTemplates.forEach { template ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = template.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Row {
+                                IconButton(onClick = { onEditTemplate(template.id) }) {
+                                    Icon(Icons.Outlined.Edit, contentDescription = "Edit")
+                                }
+                                IconButton(onClick = { onDeleteTemplate(template.id) }) {
+                                    Icon(Icons.Outlined.Delete, contentDescription = "Delete")
+                                }
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    )
+}

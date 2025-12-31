@@ -47,4 +47,7 @@ sealed class Destinations {
 
     @Serializable
     data class TaskProgress(val taskId: Int)
+
+    @Serializable
+    data class EditTaskTemplate(val templateId: Int)
 }
