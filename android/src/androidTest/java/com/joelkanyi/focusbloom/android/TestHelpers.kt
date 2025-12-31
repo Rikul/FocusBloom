@@ -25,6 +25,10 @@ import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiSelector
 import androidx.test.uiautomator.Until
+import com.joelkanyi.focusbloom.core.domain.repository.tasks.TasksRepository
+import com.joelkanyi.focusbloom.core.domain.repository.TaskTemplateRepository
+import org.koin.core.context.GlobalContext
+import kotlinx.coroutines.runBlocking
 
 /**
  * Test helper functions for FocusBloom instrumented tests.
@@ -32,9 +36,24 @@ import androidx.test.uiautomator.Until
  */
 
 /**
+ * Clears the database (Tasks and Task Templates) to ensure a clean state for tests.
+ */
+fun clearDatabase() {
+    val koin = GlobalContext.get()
+    val tasksRepository = koin.get<TasksRepository>()
+    val taskTemplateRepository = koin.get<TaskTemplateRepository>()
+    
+    runBlocking {
+        tasksRepository.deleteAllTasks()
+        taskTemplateRepository.deleteAllTaskTemplates()
+    }
+}
+
+/**
  * Handles the Android notification permission dialog (Android 13+)
  */
 fun handleNotificationPermission(device: UiDevice) {
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         // Wait for permission dialog to appear
         val permissionDialog = device.wait(
